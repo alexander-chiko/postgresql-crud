@@ -1,33 +1,43 @@
 "use client";
-
+import { useState, SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import axios from "axios";
 
-export default function AddProduct({ brands }) {
+const AddProduct = ({ brands }) => {
+  const [title, setTitle] = useState("");
+  const [price, setPrice] = useState("");
+  const [brand, setBrand] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
-  const handleModal = () => {
-    setIsOpen(!isOpen);
-  };
+
   const handleSubmit = async (e) => {
-    //e: SyntheticEvent
     e.preventDefault();
+    setIsLoading(true);
     await axios.post("/api/products", {
-      title: e.target.title.value,
-      price: Number(e.target.price.value),
-      brandId: Number(e.target.brand.value),
+      title: title,
+      price: Number(price),
+      brandId: Number(brand),
     });
-    e.target.reset();
+    setIsLoading(false);
+    setTitle("");
+    setPrice("");
+    setBrand("");
     router.refresh();
     setIsOpen(false);
   };
+
+  const handleModal = () => {
+    setIsOpen(!isOpen);
+  };
+
   return (
     <div>
       <button className="btn" onClick={handleModal}>
         Add New
       </button>
+
       <div className={isOpen ? "modal modal-open" : "modal"}>
         <div className="modal-box">
           <h3 className="font-bold text-lg">Add New Product</h3>
@@ -35,25 +45,30 @@ export default function AddProduct({ brands }) {
             <div className="form-control w-full">
               <label className="label font-bold">Product Name</label>
               <input
-                id="title"
                 type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="input input-bordered"
                 placeholder="Product Name"
-                className="input input-bordered w-full"
-                required
               />
             </div>
             <div className="form-control w-full">
               <label className="label font-bold">Price</label>
               <input
-                id="price"
                 type="text"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                className="input input-bordered"
                 placeholder="Price"
-                className="input input-bordered w-full"
               />
             </div>
             <div className="form-control w-full">
               <label className="label font-bold">Brand</label>
-              <select className="select select-bordered" id="brand">
+              <select
+                value={brand}
+                onChange={(e) => setBrand(e.target.value)}
+                className="select select-bordered"
+              >
                 <option value="" disabled>
                   Select a Brand
                 </option>
@@ -68,13 +83,21 @@ export default function AddProduct({ brands }) {
               <button type="button" className="btn" onClick={handleModal}>
                 Close
               </button>
-              <button type="submit" className="btn btn-primary">
-                Save
-              </button>
+              {!isLoading ? (
+                <button type="submit" className="btn btn-primary">
+                  Save
+                </button>
+              ) : (
+                <button type="button" className="btn loading">
+                  Saving...
+                </button>
+              )}
             </div>
           </form>
         </div>
       </div>
     </div>
   );
-}
+};
+
+export default AddProduct;
