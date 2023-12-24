@@ -1,27 +1,38 @@
 import { PrismaClient } from "@prisma/client";
 import AddProduct from "./addProduct";
-import UpdateProduct from "./updateProduct";
 import DeleteProduct from "./deleteProduct";
+import UpdateProduct from "./updateProduct";
 const prisma = new PrismaClient();
 
-export default async function ProductPage() {
-  const products = await prisma.product.findMany({
+export const dynamic = "force-dynamic";
+
+const getProducts = async () => {
+  const res = await prisma.product.findMany({
     select: {
       id: true,
       title: true,
       price: true,
-      brand: true,
       brandId: true,
+      brand: true,
     },
   });
-  const brands = await prisma.brand.findMany();
+  return res;
+};
 
-  // const [products, brands] = await Promise.all([getProducts(), getBrands()]);
+const getBrands = async () => {
+  const res = await prisma.brand.findMany();
+  return res;
+};
+
+const Product = async () => {
+  const [products, brands] = await Promise.all([getProducts(), getBrands()]);
+
   return (
     <div>
       <div className="mb-2">
         <AddProduct brands={brands} />
       </div>
+
       <table className="table w-full">
         <thead>
           <tr>
@@ -39,9 +50,9 @@ export default async function ProductPage() {
               <td>{product.title}</td>
               <td>{product.price}</td>
               <td>{product.brand.name}</td>
-              <td>
-                <DeleteProduct product={product} />
+              <td className="flex justify-center space-x-1">
                 <UpdateProduct brands={brands} product={product} />
+                <DeleteProduct product={product} />
               </td>
             </tr>
           ))}
@@ -49,4 +60,6 @@ export default async function ProductPage() {
       </table>
     </div>
   );
-}
+};
+
+export default Product;
